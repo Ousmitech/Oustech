@@ -1,0 +1,17 @@
+{
+  "name": "የስም እና ስልክ መዝገብ",
+  "short_name": "የስም መዝገብ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6fa",
+  "theme_color": "#1769aa",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

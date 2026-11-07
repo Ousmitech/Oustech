@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="am">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1769aa">
+<meta name="description" content="የስም፣ የወላጅ እና የስልክ ቁጥር መመዝገቢያ">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<title>የስም መዝገብ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#182230;font-family:Arial,"Noto Sans Ethiopic",sans-serif}
+header{position:sticky;top:0;z-index:5;background:#fff;padding:12px 14px;border-bottom:1px solid #dfe4ec}
+h1{font-size:18px;margin:0 0 5px}.sub{font-size:12px;color:#667085}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+button{border:0;border-radius:8px;padding:9px 12px;font-size:13px;background:#1769aa;color:white}
+button.secondary{background:#e8eef5;color:#243447}
+main{padding:10px;max-width:700px;margin:auto}
+.row{display:grid;grid-template-columns:34px 1fr 1fr;gap:6px;align-items:center;background:white;border:1px solid #e1e6ee;border-radius:9px;padding:7px;margin-bottom:7px}
+.num{font-weight:bold;text-align:center;color:#475467;font-size:13px}
+input{width:100%;min-width:0;border:1px solid #d0d5dd;border-radius:7px;padding:10px 8px;font-size:15px;background:#fff;color:#101828}
+input:focus{outline:2px solid #84c5f4;border-color:#2785c7}
+.phone{grid-column:2/4}.status{font-size:12px;color:#067647;margin-left:6px}
+@media(min-width:560px){.row{grid-template-columns:38px 1.2fr 1fr 1fr}.phone{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+<h1>የስም፣ የወላጅ እና የስልክ ቁጥር መዝገብ</h1>
+<div class="sub">ከ1 እስከ 100 • መረጃው በዚህ ስልክ ይቀመጣል።</div>
+<div class="actions">
+<button id="export">መዝገቡን አውርድ (CSV)</button>
+<button class="secondary" id="clear">ሁሉንም አጽዳ</button>
+<span class="status" id="status" aria-live="polite">ተዘጋጅቷል</span>
+</div>
+</header>
+<main id="list"></main>
+<script>
+const KEY='name_parent_phone_register_v1';let data={};
+try{data=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){data={}}
+const list=document.getElementById('list'),status=document.getElementById('status');
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));status.textContent='ተቀምጧል ✓'}catch(e){status.textContent='ማስቀመጥ አልተቻለም'}}
+for(let i=1;i<=100;i++){
+ const row=document.createElement('section');row.className='row';
+ const n=document.createElement('div');n.className='num';n.textContent=i;row.appendChild(n);
+ for(const f of [{key:'name',placeholder:'ስም',type:'text'},{key:'parent',placeholder:'የወላጅ ስም',type:'text'},{key:'phone',placeholder:'ስልክ ቁጥር',type:'tel'}]){
+  const input=document.createElement('input');input.type=f.type;input.placeholder=f.placeholder;
+  input.setAttribute('aria-label',i+' '+f.placeholder);input.autocomplete='off';
+  input.value=(data[i]&&data[i][f.key])||'';if(f.key==='phone')input.inputMode='tel';
+  input.addEventListener('input',()=>{data[i]=data[i]||{};data[i][f.key]=input.value;save()});
+  if(f.key==='phone')input.classList.add('phone');row.appendChild(input);
+ }list.appendChild(row);
+}
+document.getElementById('export').addEventListener('click',()=>{
+ const rows=[['ቁጥር','ስም','የወላጅ ስም','ስልክ ቁጥር']];
+ for(let i=1;i<=100;i++){const d=data[i]||{};rows.push([i,d.name||'',d.parent||'',d.phone||''])}
+ const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download='name-parent-phone-register.csv';a.click();URL.revokeObjectURL(url);
+});
+document.getElementById('clear').addEventListener('click',()=>{
+ if(confirm('በዚህ መዝገብ ያለውን ሁሉንም መረጃ ማጥፋት ትፈልጋለህ?')){
+ data={};localStorage.removeItem(KEY);document.querySelectorAll('input').forEach(x=>x.value='');status.textContent='ተጠርጓል';
+ }});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}
+</script>
+</body></html>
